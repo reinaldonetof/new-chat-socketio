@@ -102,6 +102,8 @@
 
         let selectedRoom = "";
 
+        let countMsgs = 2;
+
         let mediaRecorder;
         let audioPermission = false;
         navigator.mediaDevices.getUserMedia({ audio: true }).then(
@@ -153,6 +155,9 @@
               room: selectedRoom,
             });
             $(".msg").val("");
+          } else if (key.keyCode === 16) {
+            socket.emit("upListMsgs", { countMsgs, selectedRoom });
+            countMsgs++;
           }
         });
 
@@ -164,6 +169,7 @@
         const selectRoom = (roomId) => {
           socket.emit("join", roomId);
           selectedRoom = roomId;
+          countMsgs = 2;
           $(`#${roomId} .notifications`).show();
           $(`#${roomId} .notifications span`).text("0");
         };
@@ -230,7 +236,8 @@
         });
         socket.on("msgsList", (msgs) => {
           $(".messages").html("");
-          msgs.map(addMsg);
+          msgs.reverse().map(addMsg);
+          $(".messages").scrollIntoView(false);
         });
         $(".add-room").click(function () {
           const roomName = prompt("Informe o nome da sala");

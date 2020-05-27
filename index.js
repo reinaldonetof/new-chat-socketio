@@ -59,6 +59,14 @@ io.on("connection", (socket) => {
     socket.emit("roomList", rooms);
   });
 
+  socket.on("upListMsgs", (object) => {
+    Message.find({ room: object.selectedRoom })
+      .sort({ when: -1 })
+      .limit(10 * object.countMsgs)
+      .then((msgs) => {
+        socket.emit("msgsList", msgs);
+      });
+  });
   socket.on("addRoom", async (roomMembers) => {
     const checkRoom = await Room.findOne({ members: roomMembers.members });
     if (!checkRoom) {
@@ -76,9 +84,12 @@ io.on("connection", (socket) => {
   // join na sala que o usuario quer entrar
   socket.on("join", (roomId) => {
     socket.join(roomId);
-    Message.find({ room: roomId }).then((msgs) => {
-      socket.emit("msgsList", msgs);
-    });
+    Message.find({ room: roomId })
+      .sort({ when: -1 })
+      .limit(10)
+      .then((msgs) => {
+        socket.emit("msgsList", msgs);
+      });
   });
 
   // receber mensagem
